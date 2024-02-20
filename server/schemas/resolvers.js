@@ -29,10 +29,38 @@ const resolvers = {
 
       return { token, user };
     },
+
     addUser: async (parent, { username, email, password }) => {
       const user = await User.create({ username, email, password });
       const token = signToken(user);
       return { token, user };
+    },
+
+    saveBook: async (parent, { bookData }, context) => {
+      if (context.user) {
+        const book = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: bookData } },
+          { new: true }
+        );
+
+        return book;
+      }
+      throw AuthenticationError;
+      ("pls log in");
+    },
+
+    removeBook: async (parent, { bookId }, context) => {
+      if (context.user) {
+        const deletedBook = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId } } },
+          { new: true }
+        );
+
+        return deletedBook;
+      }
+      throw AuthenticationError;
     },
   },
 };
